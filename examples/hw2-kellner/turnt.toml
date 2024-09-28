@@ -1,0 +1,22 @@
+[envs.brili]
+command = "bril2json < {filename} | brili -p {args}"
+output.out = "-"
+output.prof = "2"
+
+[envs.tdce]
+default = false
+command = "bril2json < {filename} | lua triv_dce_run.lua | brili -p {args}"
+output.out = "-"
+output.tdce = "2"
+
+[envs.lvn]
+default = false
+command = "bril2json < {filename} | lua loc_val_num_run.lua | brili -p {args}"
+output.out = "-"
+output.lvn = "2"
+
+[envs.opt]
+default = false
+command = "bril2json < {filename} | lua triv_dce_run.lua | lua loc_val_num_run.lua | brili -p {args}"
+output.out = "-"
+output.opt = "2"

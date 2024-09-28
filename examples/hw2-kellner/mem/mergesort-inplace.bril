@@ -1,0 +1,161 @@
+# In-Place Merge Sort
+# Oscar Kellner
+
+# ARGS: 8 1 2 7 3 6 5 4
+@main(n1: int, n2: int, n3: int, n4: int, n5: int, n6: int, n7: int, n8: int) {
+    one: int = const 1;
+    size: int = const 8;
+    zero: int = const 0;
+
+    # Generate array from arguments
+    array: ptr<int> = call @pack size n1 n2 n3 n4 n5 n6 n7 n8;
+    upper_bound: int = sub size one;
+
+    # Call merge_sort
+    call @merge_sort array zero upper_bound;
+
+    # Print array
+    call @print_array array size;
+
+    free array;
+}
+
+# Adapted from the Bubble Sort benchmark, condenses list of arguments into array
+@pack(size: int, n1: int, n2: int, n3: int, n4: int, n5: int, n6: int, n7: int, n8: int) : ptr<int> {
+    one: int = const 1;
+    i: int = const 0;
+
+    # Allocate array
+    array: ptr<int> = alloc size;
+    # Set store location by adding index offset to array pointer
+    loc: ptr<int> = ptradd array i;
+    # Store argument n into array
+    store loc n1;
+    # increment index
+    i: int = add i one;
+
+    # Repeat until all arguments are stored
+    loc: ptr<int> = ptradd array i;
+    store loc n2;
+    i: int = add i one;        
+    loc: ptr<int> = ptradd array i;
+    store loc n3;
+    i: int = add i one;        
+    loc: ptr<int> = ptradd array i;
+    store loc n4;
+    i: int = add i one;        
+    loc: ptr<int> = ptradd array i;
+    store loc n5;
+    i: int = add i one;        
+    loc: ptr<int> = ptradd array i;
+    store loc n6;
+    i: int = add i one;        
+    loc: ptr<int> = ptradd array i;
+    store loc n7;
+    i: int = add i one;        
+    loc: ptr<int> = ptradd array i;
+    store loc n8;
+
+    ret array;
+}
+
+@merge(arr: ptr<int>, start: int, mid: int, end: int) {
+    one: int = const 1;
+    # We keep two pointers to track start of both subarrays
+    start2: int = add mid one;
+    midp: ptr<int> = ptradd arr mid;
+    midv: int = load midp;
+    start2p: ptr<int> = ptradd arr start2;
+    start2v: int = load start2p;
+    # Check if 2 elements are already sorted (arr[mid] <= arr[start2])
+    cond: bool = gt midv start2v;
+    br cond .loop1 .done;
+    # Check if either start points have approached the end of their subarray
+.loop1:
+    cond: bool = gt start mid;
+    br cond .done .cont1;
+.cont1:
+    cond: bool = gt start2 end;
+    br cond .done .cont2;
+.cont2:
+    # Check if element is already in correct position
+    startp: ptr<int> = ptradd arr start;
+    startv: int = load startp;
+    start2p: ptr<int> = ptradd arr start2;
+    start2v: int = load start2p;
+    cond: bool = gt startv start2v;
+    br cond .cont4 .cont3;
+.cont3:
+    # increment index and continue merging
+    start: int = add start one;
+    jmp .loop1;
+.cont4:
+    # Shift elements of second subarray to fit arr[start2]'s new position
+    val: int = load start2p;
+    ind: int = id start2;
+.loop2:
+    cond: bool = eq ind start;
+    br cond .cont6 .cont5;
+.cont5:
+    indp: ptr<int> = ptradd arr ind;
+    tmpi: int = sub ind one;
+    tmpp: ptr<int> = ptradd arr tmpi;
+    tmpv: int = load tmpp;
+    store indp tmpv;
+    ind: int = sub ind one;
+    jmp .loop2;
+.cont6:
+    startp: ptr<int> = ptradd arr start;
+    store startp val;
+    # increment all pointers and continue merging
+    start: int = add start one;
+    mid: int = add mid one;
+    start2: int = add start2 one;
+    jmp .loop1;
+.done:
+    ret;
+}
+
+@merge_sort(arr: ptr<int>, l: int, r: int) {
+    one: int = const 1;
+    two: int = const 2;
+
+    # Stop if indeces overlap (can't divide further)
+    cond: bool = lt l r;
+    br cond .body .done;
+.body:
+    # calculate m = l + (r - l) / 2
+    interm: int = sub r l;
+    interm: int = div interm two;
+    m: int = add l interm;
+
+    # divide to subarrays down midpoint and recursively call merge_sort
+    call @merge_sort arr l m;
+    mp1: int = add m one;
+    call @merge_sort arr mp1 r;
+
+    # merge sub arrays
+    call @merge arr l m r;
+.done:
+    ret;
+}
+
+# Adapted from Bubble Sort benchmark
+@print_array(array: ptr<int>, size: int) {
+    i: int = const 0;
+    one: int = const 1;
+    # for(i = 0; i < size; ++i)
+.loop:
+    cond: bool = lt i size;
+    br cond .body .done;
+.body:
+    # print(array[i])
+    loc: ptr<int> = ptradd array i;
+    val: int = load loc;
+    print val;
+.loop_end:
+    i: int = add i one;
+    jmp .loop;
+.done:
+    ret;
+}
